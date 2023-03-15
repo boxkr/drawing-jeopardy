@@ -126,20 +126,41 @@ function DrawingBoard() {
       console.log("undo:",prevPoints,points,totalPoints,individualStrokes)
     }
   
-    
-    
+    const handleKeydown=(e)=>{
+
+      //console.log(e)
+      e.preventDefault();
+      //if(e.repeat){return}
+      if( e.ctrlKey && e.code === 'KeyZ') {
+          console.log("undo fire",e)
+          handleUndo();
+          
+          
+      }
+      
+      
+    }
+
+    useEffect(()=>{
+
+      console.log("useffect")
+      document.addEventListener("keydown", handleKeydown)
+      
+      return () => document.removeEventListener("keydown", handleKeydown);
+    },[handleKeydown])
 
     useLayoutEffect(() => {
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext("2d");
-        const options = { size: 8 }
-        const outlinePoints = getStroke(points, options)
-        const pathData = getSvgPathFromStroke(outlinePoints)
-        const myPath = new Path2D(pathData)
-        ctx.fill(myPath)
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext("2d");
+      const options = { size: 8 }
+      const outlinePoints = getStroke(points, options)
+      const pathData = getSvgPathFromStroke(outlinePoints)
+      const myPath = new Path2D(pathData)
+      ctx.fill(myPath)
 
     }, [points])
 
+    /*
     document.addEventListener('keydown', (e) => {  
       console.log(individualStrokes)
       e.preventDefault();
@@ -147,7 +168,7 @@ function DrawingBoard() {
           console.log("found")
           handleUndo();
       }  
-    })
+    })*/
 
     return (
         <div className='boardContainer'>
