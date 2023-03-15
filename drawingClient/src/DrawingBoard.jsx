@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import rough from 'roughjs/bundled/rough.esm'
 import { getStroke } from 'perfect-freehand'
@@ -12,6 +12,8 @@ function DrawingBoard() {
     const [totalPoints, setTotalPoints] = useState([])
     const [isDrawing, setIsDrawing] = useState(false)
     const [individualStrokes, setIndividualStrokes] = useState([])
+    
+    const strokeRef = useRef(individualStrokes);
 
     const average = (a,b)=>{return (a+b)/2}
     function getSvgPathFromStroke(points, closed = true) {
@@ -79,6 +81,7 @@ function DrawingBoard() {
         setPoints([]);
         setPrevPoints([]);
         setTotalPoints([]);
+        setIndividualStrokes([]);
         console.log("cleared:",prevPoints,points,totalPoints)
     }
 
@@ -137,17 +140,14 @@ function DrawingBoard() {
 
     }, [points])
 
-    useEffect(()=>{
-      document.addEventListener('keydown', (e) => {  
-
-        e.preventDefault();
-        if( e.ctrlKey && e.code === 'KeyZ') {
-            console.log("found")
-            handleUndo();
-        }  
-      })
-
-    },[])
+    document.addEventListener('keydown', (e) => {  
+      console.log(individualStrokes)
+      e.preventDefault();
+      if( e.ctrlKey && e.code === 'KeyZ') {
+          console.log("found")
+          handleUndo();
+      }  
+    })
 
     return (
         <div className='boardContainer'>
