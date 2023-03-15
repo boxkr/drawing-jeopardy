@@ -1,10 +1,32 @@
 .canvas{
     background-color: rgb(231, 231, 231);
+    padding: 0;
+    margin: auto;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    border: 1px dotted black;
 }
 
 .board-container{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+    
+    display: relative;
+
+}
+
+.container{
+    
+    width: 100vw;
+    height: 100vh;
+}
+.controls{
+
+    position: absolute;
+    z-index:2;
+    top:85%; 
+    left: 44%;
 }

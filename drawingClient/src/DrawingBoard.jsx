@@ -143,19 +143,23 @@ function DrawingBoard() {
     }, [points])
 
     return (
+      <div className='container'>
         <div className='boardContainer'>
             <canvas
                 id='canvas'
                 className='canvas'
-                width={window.innerWidth / 1.25}
+                width={window.innerWidth / 1.75}
                 height={window.innerHeight / 1.5}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}>
             </canvas>
+        </div>
+        <div className='controls'>
             <button onClick={handleClear}>Clear Canvas</button>
             <button onClick={handleUndo}>Undo</button>
         </div>
+      </div>
     )
 }
 
