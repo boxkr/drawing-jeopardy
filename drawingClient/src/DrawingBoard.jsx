@@ -12,8 +12,6 @@ function DrawingBoard() {
     const [totalPoints, setTotalPoints] = useState([])
     const [isDrawing, setIsDrawing] = useState(false)
     const [individualStrokes, setIndividualStrokes] = useState([])
-    
-    const strokeRef = useRef(individualStrokes);
 
     const average = (a,b)=>{return (a+b)/2}
     function getSvgPathFromStroke(points, closed = true) {
@@ -49,7 +47,7 @@ function DrawingBoard() {
         const bounds = canvas.getBoundingClientRect();
         setIsDrawing(true)
         setPoints([[e.pageX - bounds.left - window.scrollX, e.pageY - bounds.top - window.scrollY, e.pressure]])
-        console.log("mouse down:",prevPoints,points,totalPoints,individualStrokes)
+
     }
 
     function handleMouseMove(e) {
@@ -57,7 +55,7 @@ function DrawingBoard() {
         const bounds = canvas.getBoundingClientRect();
         if (!isDrawing) return
         setPoints([...points, [e.pageX - bounds.left - window.scrollX, e.pageY - bounds.top - window.scrollY, e.pressure]])
-        console.log("mouse move:",prevPoints,points,totalPoints,individualStrokes)
+
     }
 
     function handleMouseUp(e) {
@@ -71,7 +69,7 @@ function DrawingBoard() {
           test.push(points)
           setIndividualStrokes(test)
         }
-        console.log("mouse up:",prevPoints,points,totalPoints,individualStrokes)
+
     }
 
     function handleClear() {
@@ -82,16 +80,10 @@ function DrawingBoard() {
         setPrevPoints([]);
         setTotalPoints([]);
         setIndividualStrokes([]);
-        console.log("cleared:",prevPoints,points,totalPoints)
+
     }
 
     function handleUndo() {
-      /*
-      if (prevPoints.length === 0) {
-          handleClear();
-          return;
-      }*/
-      console.log("TOP OF UNDO:",prevPoints,points,totalPoints,individualStrokes)
           
       const newTotalPoints = totalPoints.slice(0, -prevPoints.length);
       const lastPoints = newTotalPoints.slice(-prevPoints.length);
@@ -105,7 +97,6 @@ function DrawingBoard() {
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const options = { size: 8 }
-      console.log("strokes: ", individualStrokes)
       
       if(individualStrokes.length == 0){
         handleClear();
@@ -113,7 +104,6 @@ function DrawingBoard() {
 
       for(let i = 0; i < individualStrokes.length-1; i++){
         const stroke = individualStrokes[i];
-        console.log("STROKE:",stroke)
         const outlinePoints = getStroke(stroke, options)
         const pathData = getSvgPathFromStroke(outlinePoints)
         const myPath = new Path2D(pathData)
@@ -123,29 +113,21 @@ function DrawingBoard() {
 
 
       setIndividualStrokes([...individualStrokes.slice(0,-1)])
-      console.log("undo:",prevPoints,points,totalPoints,individualStrokes)
     }
   
     const handleKeydown=(e)=>{
-
-      //console.log(e)
       e.preventDefault();
-      //if(e.repeat){return}
       if( e.ctrlKey && e.code === 'KeyZ') {
           console.log("undo fire",e)
           handleUndo();
-          
-          
+            
       }
-      
-      
     }
 
     useEffect(()=>{
 
-      console.log("useffect")
       document.addEventListener("keydown", handleKeydown)
-      
+
       return () => document.removeEventListener("keydown", handleKeydown);
     },[handleKeydown])
 
@@ -159,16 +141,6 @@ function DrawingBoard() {
       ctx.fill(myPath)
 
     }, [points])
-
-    /*
-    document.addEventListener('keydown', (e) => {  
-      console.log(individualStrokes)
-      e.preventDefault();
-      if( e.ctrlKey && e.code === 'KeyZ') {
-          console.log("found")
-          handleUndo();
-      }  
-    })*/
 
     return (
         <div className='boardContainer'>
