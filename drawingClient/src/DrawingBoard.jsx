@@ -5,7 +5,7 @@ import { getStroke } from 'perfect-freehand'
 
 import './DrawingBoard.css'
 
-function DrawingBoard() {
+function DrawingBoard(props) {
 
     const [points, setPoints] = useState([])
     const [prevPoints, setPrevPoints] = useState([])
@@ -143,7 +143,8 @@ function DrawingBoard() {
     }, [points])
 
     return (
-      <div className='container'>
+      <div className='container-board'>
+        
         <div className='boardContainer'>
             <canvas
                 id='canvas'
@@ -158,6 +159,7 @@ function DrawingBoard() {
         <div className='controls'>
             <button onClick={handleClear}>Clear Canvas</button>
             <button onClick={handleUndo}>Undo</button>
+            
         </div>
       </div>
     )
