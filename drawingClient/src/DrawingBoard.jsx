@@ -2,6 +2,8 @@ import { useEffect, useLayoutEffect, useState, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import rough from 'roughjs/bundled/rough.esm'
 import { getStroke } from 'perfect-freehand'
+import { AlphaPicker, BlockPicker, ChromePicker, CirclePicker, CompactPicker, GithubPicker, HuePicker, PhotoshopPicker, SketchPicker, SliderPicker, SwatchesPicker, TwitterPicker } from 'react-color';
+
 
 import './DrawingBoard.css'
 
@@ -12,6 +14,8 @@ function DrawingBoard(props) {
     const [totalPoints, setTotalPoints] = useState([])
     const [isDrawing, setIsDrawing] = useState(false)
     const [individualStrokes, setIndividualStrokes] = useState([])
+    const [currentDrawColor, setCurrentDrawColor] = useState("#000000");
+    const [colorHistory, setColorHistory] = useState([]);
 
     const average = (a,b)=>{return (a+b)/2}
     function getSvgPathFromStroke(points, closed = true) {
@@ -64,10 +68,17 @@ function DrawingBoard(props) {
         setPrevPoints([...points])
         if(individualStrokes.length == 0){
           setIndividualStrokes(...[],[points])
+          //setColorHistory(...[],[currentDrawColor])
+          let colors = colorHistory;
+          colors.push(currentDrawColor)
+          setColorHistory(colors)
         }else{
           let test = individualStrokes
           test.push(points)
           setIndividualStrokes(test)
+          let colors = colorHistory;
+          colors.push(currentDrawColor)
+          setColorHistory(colors)
         }
 
     }
@@ -80,6 +91,7 @@ function DrawingBoard(props) {
         setPrevPoints([]);
         setTotalPoints([]);
         setIndividualStrokes([]);
+        setColorHistory([]);
 
     }
 
@@ -107,21 +119,25 @@ function DrawingBoard(props) {
         const outlinePoints = getStroke(stroke, options)
         const pathData = getSvgPathFromStroke(outlinePoints)
         const myPath = new Path2D(pathData)
-        
+        ctx.fillStyle = colorHistory[i];
         ctx.fill(myPath)
       }
 
 
       setIndividualStrokes([...individualStrokes.slice(0,-1)])
+      setColorHistory([...colorHistory.slice(0,-1)])
     }
   
     const handleKeydown=(e)=>{
       e.preventDefault();
       if( e.ctrlKey && e.code === 'KeyZ') {
-          console.log("undo fire",e)
           handleUndo();
             
       }
+    }
+
+    const handleColorChange=(c)=>{
+      setCurrentDrawColor(c.hex);
     }
 
     useEffect(()=>{
@@ -138,6 +154,7 @@ function DrawingBoard(props) {
       const outlinePoints = getStroke(points, options)
       const pathData = getSvgPathFromStroke(outlinePoints)
       const myPath = new Path2D(pathData)
+      ctx.fillStyle = currentDrawColor;
       ctx.fill(myPath)
 
     }, [points])
@@ -159,6 +176,12 @@ function DrawingBoard(props) {
         <div className='controls'>
             <button onClick={handleClear}>Clear Canvas</button>
             <button onClick={handleUndo}>Undo</button>
+            {/*Sliderpicker or CirclePicker are the best */}
+            <CirclePicker 
+              color={currentDrawColor}
+              colors={["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#000000"]}
+              onChangeComplete={handleColorChange}
+            />
             
         </div>
       </div>

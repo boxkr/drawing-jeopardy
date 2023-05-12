@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import reactLogo from './assets/react.svg'
 import './App.css'
 import DrawingBoard from './DrawingBoard'
@@ -66,9 +66,9 @@ function App() {
       
   }
 
-
-
   return (
+
+    
 
     codeSubmitted==false ? 
     <>
