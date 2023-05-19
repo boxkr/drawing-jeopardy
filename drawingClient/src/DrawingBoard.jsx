@@ -159,6 +159,64 @@ function DrawingBoard(props) {
 
     }, [points])
 
+    useEffect(() => {
+      const handleBeforeUnload = async () => {
+        
+        //remove name from database
+        const roomsCollectionRef = collection(db, "rooms");
+        const roomsDocRef = doc(roomsCollectionRef, props.roomCode)
+        const roomSnapshot = await getDoc(roomsDocRef)
+
+        if(roomSnapshot.exists()){
+
+            const currentData = roomSnapshot.data()
+            var index = currentData.members.indexOf(props.username);
+            let gamemaster = currentData.gamemaster
+                
+
+            if (index !== -1) {
+                    
+              if(currentData.gamemaster == currentData.members[index]){
+                        
+                currentData.members.splice(index, 1);
+                        
+                if(currentData.members.length == 0){
+                  //TODO: CLEAN UP THE LOBBY IS IT'S DEAD!
+                  console.log("No more members left... need to clean up")
+                  return
+                }
+
+                gamemaster = currentData.members[0]
+              }else{
+                  currentData.members.splice(index, 1);
+              }
+                    
+            }else{
+              return
+            }
+
+            await setDoc(roomsDocRef,{
+              members: currentData.members,
+              gamemaster: gamemaster,
+              round: currentData.round,
+              time: currentData.time,
+              inprogress: currentData.inprogress
+          })
+
+        }else{
+            alert("ERROR, room somehow doesn't exist...")
+            return
+        }
+
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+  
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }, []);
+
     return (
       <div className='container-board'>
         

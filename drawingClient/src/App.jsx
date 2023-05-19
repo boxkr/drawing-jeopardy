@@ -5,6 +5,7 @@ import DrawingBoard from './DrawingBoard'
 import PlayerList from './PlayerList'
 import {db} from './firebaseConfig'
 import { collection, doc, onSnapshot, deleteDoc, query, where, getDocs, getDoc, setDoc } from "firebase/firestore";
+import Lobby from './Lobby'
 
 function App() {
 
@@ -40,14 +41,21 @@ function App() {
       /*if it exists, add this member to the room list*/
      
       console.log("room exists already")
+      
       //grab current data from this room
       const currentData = roomSnapshot.data();
+      if(currentData.inprogress == true){
+        alert("Game already in progress!")
+        return
+      }
 
       //set it to a copy of itself, just with the new member added
       await setDoc(roomsDocRef,{
         members: [...currentData.members, username],
         gamemaster: currentData.gamemaster,
-        round: currentData.round
+        round: currentData.round,
+        time: currentData.time,
+        inprogress: currentData.inprogress
       })
 
 
@@ -58,7 +66,10 @@ function App() {
       await setDoc(roomsDocRef,{
         members: [username],
         gamemaster: username,
-        round: 0
+        round: 0,
+        time: 60,
+        inprogress: false
+
       })
 
     }
@@ -101,8 +112,7 @@ function App() {
   </> 
   :   
   <><div className="container-board">
-    <DrawingBoard roomCode={roomCode}/>
-    <PlayerList roomCode={roomCode}/>
+    <Lobby roomCode={roomCode} username={username}/>
   </div></>
 
     
