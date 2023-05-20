@@ -4,11 +4,13 @@ import {collection,doc,onSnapshot,query,getDoc,setDoc,} from 'firebase/firestore
 import './Lobby.css'
 import PlayerList from './PlayerList'
 import DrawingBoard from './DrawingBoard'
+import Timer from './Timer'
 
 function Lobby(props) {
 
 
     const [gameStarted, setGameStarted] = useState(false)
+    const [isGameMaster, setIsGameMaster] = useState(false)
 
     const handleStartGame = async ()=>{
 
@@ -42,12 +44,12 @@ function Lobby(props) {
     }
 
     async function startGameListener(){
-        const unsub = onSnapshot(doc(db, 'rooms', props.roomCode), (doc) => {
+        const unsub = onSnapshot(doc(db, 'rooms', props.roomCode), async (doc) => {
           setGameStarted(doc.data().inprogress)
         });
     }
 
-    //useeffect for the startgame listener
+    //useeffect for the startgame listener and pre-loading
     useEffect(()=>{
         startGameListener();
       }, [])
@@ -75,6 +77,7 @@ function Lobby(props) {
                     if(currentData.gamemaster == currentData.members[index]){
                         currentData.members.splice(index, 1);
                         if(currentData.members.length == 0){
+                            //TODO: CLEAN UP THE LOBBY IS IT'S DEAD!
                             console.log("No more members left... need to clean up")
                             return
                         }
@@ -112,6 +115,21 @@ function Lobby(props) {
         };
 
     }, []);
+
+    async function getGameMaster(){
+        
+
+        const unsub = onSnapshot(doc(db, 'rooms', props.roomCode), (doc) => {
+            console.log(doc.data().gamemaster, props.username, doc.data().gamemaster == props.username)
+            setIsGameMaster(doc.data().gamemaster == props.username);
+          });
+    }
+
+    useEffect(()=>{
+
+        getGameMaster()
+
+    },[])
     
 
     return (
@@ -129,6 +147,10 @@ function Lobby(props) {
                 </div>
                 <div>
                     <button onClick={handleStartGame}>Start Game!</button>
+                </div>
+                <div>
+                    <p>{isGameMaster ? "t" : "f"}</p>
+                    {(isGameMaster == true) ? <Timer isGameMaster={true} roomCode={props.roomCode} username={props.username}/> : <Timer isGameMaster={false} roomCode={props.roomCode} username={props.username}/>}
                 </div>
             </div>
         </>
