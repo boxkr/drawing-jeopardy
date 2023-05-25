@@ -44,7 +44,7 @@ function App() {
       
       //grab current data from this room
       const currentData = roomSnapshot.data();
-      if(currentData.inprogress == true){
+      if(currentData.inprogress != false){
         alert("Game already in progress!")
         return
       }

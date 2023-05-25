@@ -17,8 +17,19 @@ function Timer(props) {
 
     if (roomSnapshot.exists()) {
       const currentData = roomSnapshot.data();
+
+      if(currentData.time == 0){
+        //it's the end of the round, reset the round and change inprogress to VIEWING
+        await setDoc(roomsDocRef, {
+          members: currentData.members,
+          gamemaster: currentData.gamemaster,
+          round: currentData.round,
+          time: currentData.time - 1,
+          inprogress: "viewing"
+        });
+        return;
+      }
       if (isgm) {
-        console.log('WE ARE GAME_MASTER!');
         await setDoc(roomsDocRef, {
           members: currentData.members,
           gamemaster: currentData.gamemaster,
@@ -28,7 +39,6 @@ function Timer(props) {
         });
         setTime(currentData.time - 1);
       }else{
-        console.log('WE ARE NOT GAME_MASTER!');
         setTime(currentData.time);
       }
     }else {

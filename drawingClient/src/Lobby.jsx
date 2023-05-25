@@ -118,7 +118,7 @@ function Lobby(props) {
 
     async function getGameMaster(){
         
-
+        //TODO: very bad for cost-effecitvenss
         const unsub = onSnapshot(doc(db, 'rooms', props.roomCode), (doc) => {
             console.log(doc.data().gamemaster, props.username, doc.data().gamemaster == props.username)
             setIsGameMaster(doc.data().gamemaster == props.username);
@@ -148,18 +148,15 @@ function Lobby(props) {
                 <div>
                     <button onClick={handleStartGame}>Start Game!</button>
                 </div>
-                <div>
-                    <p>{isGameMaster ? "t" : "f"}</p>
-                    {(isGameMaster == true) ? <Timer isGameMaster={true} roomCode={props.roomCode} username={props.username}/> : <Timer isGameMaster={false} roomCode={props.roomCode} username={props.username}/>}
-                </div>
+                
             </div>
         </>
 
         :
 
         <>
-            <PlayerList roomCode={props.roomCode} username={props.username}/>
-            <DrawingBoard roomCode={props.roomCode} username={props.username}/>
+            <PlayerList roomCode={props.roomCode} username={props.username} gameMaster={isGameMaster}/>
+            <DrawingBoard roomCode={props.roomCode} username={props.username} gameMaster={isGameMaster}/>
         </>
         
     )

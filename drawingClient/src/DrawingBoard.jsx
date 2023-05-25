@@ -3,9 +3,13 @@ import reactLogo from './assets/react.svg'
 import rough from 'roughjs/bundled/rough.esm'
 import { getStroke } from 'perfect-freehand'
 import { AlphaPicker, BlockPicker, ChromePicker, CirclePicker, CompactPicker, GithubPicker, HuePicker, PhotoshopPicker, SketchPicker, SliderPicker, SwatchesPicker, TwitterPicker } from 'react-color';
-
+import {db, storage} from './firebaseConfig'
+import {collection,doc,onSnapshot,query,getDoc,setDoc} from 'firebase/firestore'
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 import './DrawingBoard.css'
+import Timer from "./Timer"
+import ViewingScreen from './ViewingScreen';
 
 function DrawingBoard(props) {
 
@@ -16,6 +20,7 @@ function DrawingBoard(props) {
     const [individualStrokes, setIndividualStrokes] = useState([])
     const [currentDrawColor, setCurrentDrawColor] = useState("#000000");
     const [colorHistory, setColorHistory] = useState([]);
+    const [currentStage, setCurrentStage] = useState(true)
 
     const average = (a,b)=>{return (a+b)/2}
     function getSvgPathFromStroke(points, closed = true) {
@@ -86,7 +91,8 @@ function DrawingBoard(props) {
     function handleClear() {
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle="rgb(231, 231, 231)"
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         setPoints([]);
         setPrevPoints([]);
         setTotalPoints([]);
@@ -107,7 +113,8 @@ function DrawingBoard(props) {
       
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle="rgb(231, 231, 231)"
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       const options = { size: 8 }
       
       if(individualStrokes.length == 0){
@@ -217,32 +224,76 @@ function DrawingBoard(props) {
       };
     }, []);
 
+    //listen for timer to hit 0 aka change inprogress to viewing
+    async function listenForRoundEnd(){
+      const unsub = onSnapshot(doc(db, 'rooms', props.roomCode), async (docu) => {
+
+          //listening for viewing time. setting this variable tells us what to render; either drawingboard if round is live, or viewingscreen if round is in viewing stage
+          const roomsCollectionRef = collection(db, "rooms");
+          const roomsDocRef = doc(roomsCollectionRef, props.roomCode)
+          const roomSnapshot = await getDoc(roomsDocRef)
+          if(roomSnapshot.data().inprogress != "viewing"){
+            return;
+          }
+          //first we do want to upload the players board to the database to save it for viewing
+          const storageRef = ref(storage, `${props.roomCode}-${props.username}`);
+          const canvas = document.getElementById("canvas");
+          canvas.toBlob((blob) => {
+            let file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
+            uploadBytes(storageRef, file).then((snapshot) => {
+              console.log('Uploaded a blob or file!');
+            });
+          }, 'image/jpeg');
+          
+
+
+          //lastly we want to change the current stage state
+          setCurrentStage(docu.data().inprogress);
+          console.log("HIT ZERO! changing current stage to viewing!")
+          
+
+      });
+    }
+
+    useEffect(()=>{
+        listenForRoundEnd();
+    }, [])
+
     return (
-      <div className='container-board'>
-        
-        <div className='boardContainer'>
-            <canvas
-                id='canvas'
-                className='canvas'
-                width={window.innerWidth / 1.75}
-                height={window.innerHeight / 1.5}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}>
-            </canvas>
+
+      (currentStage == true) ? 
+        <div className='container-board'>
+          {currentStage == true ? <p>t</p> : <p>{currentStage}</p>}
+          <div className='boardContainer'>
+              <canvas
+                  id='canvas'
+                  className='canvas'
+                  width={window.innerWidth / 1.75}
+                  height={window.innerHeight / 1.5}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}>
+              </canvas>
+          </div>
+          <div className='controls'>
+              <button onClick={handleClear}>Clear Canvas</button>
+              <button onClick={handleUndo}>Undo</button>
+              {/*Sliderpicker or CirclePicker are the best */}
+              <CirclePicker 
+                color={currentDrawColor}
+                colors={["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#000000"]}
+                onChangeComplete={handleColorChange}
+              />
+              
+          </div>
+          <div>
+            {(props.gameMaster == true) ? <Timer isGameMaster={true} roomCode={props.roomCode} username={props.username}/> : <Timer isGameMaster={false} roomCode={props.roomCode} username={props.username}/>}
+          </div>
         </div>
-        <div className='controls'>
-            <button onClick={handleClear}>Clear Canvas</button>
-            <button onClick={handleUndo}>Undo</button>
-            {/*Sliderpicker or CirclePicker are the best */}
-            <CirclePicker 
-              color={currentDrawColor}
-              colors={["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#000000"]}
-              onChangeComplete={handleColorChange}
-            />
-            
-        </div>
-      </div>
+      :
+      <>
+        <ViewingScreen/>
+      </>
     )
 }
 
