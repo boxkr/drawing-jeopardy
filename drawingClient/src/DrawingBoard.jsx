@@ -236,20 +236,22 @@ function DrawingBoard(props) {
             return;
           }
           //first we do want to upload the players board to the database to save it for viewing
-          const storageRef = ref(storage, `${props.roomCode}-${props.username}`);
+          const storageRef = ref(storage, `${props.roomCode}/${props.username}`);
           const canvas = document.getElementById("canvas");
-          canvas.toBlob((blob) => {
+          await canvas.toBlob( async (blob) => {
             let file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
-            uploadBytes(storageRef, file).then((snapshot) => {
+            await uploadBytes(storageRef, file).then((snapshot) => {
               console.log('Uploaded a blob or file!');
+              //lastly we want to change the current stage state
+              setCurrentStage(docu.data().inprogress);
+              console.log("HIT ZERO! changing current stage to viewing!")
             });
           }, 'image/jpeg');
           
 
 
-          //lastly we want to change the current stage state
-          setCurrentStage(docu.data().inprogress);
-          console.log("HIT ZERO! changing current stage to viewing!")
+          
+          
           
 
       });
@@ -292,7 +294,7 @@ function DrawingBoard(props) {
         </div>
       :
       <>
-        <ViewingScreen/>
+        <ViewingScreen roomCode={props.roomCode} username={props.username} isGameMaster={props.gameMaster}/>
       </>
     )
 }
