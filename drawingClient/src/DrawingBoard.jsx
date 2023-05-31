@@ -21,7 +21,7 @@ function DrawingBoard(props) {
     const [currentDrawColor, setCurrentDrawColor] = useState("#000000");
     const [colorHistory, setColorHistory] = useState([]);
     const [currentStage, setCurrentStage] = useState(true)
-    const canvasRef = useRef(null);
+    const canvasRef = useRef(0);
 
 
     const average = (a,b)=>{return (a+b)/2}
@@ -254,8 +254,6 @@ function DrawingBoard(props) {
             let file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
             uploadBytes(storageRef, file).then((snapshot) => {
               console.log('Uploaded a blob or file!');
-              //lastly we want to change the current stage state
-              console.log("HIT ZERO! changing current stage to viewing!")
             })
           }, 'image/jpeg')
           

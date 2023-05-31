@@ -98,6 +98,7 @@ function App() {
 
     codeSubmitted==false ? 
     <>
+      {import.meta.env.VITE_projectId}
       <div className='container'>
         <div className='title-container'>
           <h2>Enter a username and room code!</h2>

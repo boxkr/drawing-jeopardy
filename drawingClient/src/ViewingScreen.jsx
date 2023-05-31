@@ -51,6 +51,7 @@ function ViewingScreen(props) {
 
 
     }
+
     async function fetchPictures(){
         console.log(props.roomCode)
         
@@ -60,6 +61,7 @@ function ViewingScreen(props) {
         const urlPromises = result.items.map((imageRef) => getDownloadURL(imageRef));
         return Promise.all(urlPromises);
     }
+
     async function gatherUserPictures(){
         await setTimeout(null,3000); //need to wait for everything to upload, think that's causing an issue where we only get one
         let depth = 1
@@ -131,12 +133,7 @@ function ViewingScreen(props) {
         }else{
             return
         }
-
-            
-
-
-
-
+        
     }
     
     useEffect(()=>{
