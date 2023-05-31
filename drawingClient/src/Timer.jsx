@@ -25,7 +25,9 @@ function Timer(props) {
           gamemaster: currentData.gamemaster,
           round: currentData.round,
           time: currentData.time - 1,
-          inprogress: "viewing"
+          inprogress: "viewing",
+          points: currentData.points,
+          gameboard: currentData.gameboard
         });
         return;
       }
@@ -35,7 +37,9 @@ function Timer(props) {
           gamemaster: currentData.gamemaster,
           round: currentData.round,
           time: currentData.time - 1,
-          inprogress: currentData.inprogress
+          inprogress: currentData.inprogress,
+          points: currentData.points,
+          gameboard: currentData.gameboard
         });
         setTime(currentData.time - 1);
       }else{

@@ -5,6 +5,7 @@ import './Lobby.css'
 import PlayerList from './PlayerList'
 import DrawingBoard from './DrawingBoard'
 import Timer from './Timer'
+import HostScreen from './HostScreen'
 
 function Lobby(props) {
 
@@ -19,15 +20,26 @@ function Lobby(props) {
         const roomsDocRef = doc(roomsCollectionRef, props.roomCode)
         const roomSnapshot = await getDoc(roomsDocRef)
 
+        const gameBoard = {headers: ["Pokemon","Countries","Sports Logos", "Game Logos", "World Wonders"],
+                        easy: ["Pikachu","United States","Steelers","Borderlands","Eiffel Tower"],
+                        medium: ["Blaziken","Japan","Knicks","Overwatch","Colosseum"],
+                        hard: ["Bastiodon","Afganistan","Falcons","Skyrim","Petra"]}
+
         if(roomSnapshot.exists()){
 
             const currentData = roomSnapshot.data()
+            let starterPointsObject = {}
+            for(let i = 0; i < currentData.members.length; i++){
+                starterPointsObject[currentData.members[i]] = 0;
+            }
             await setDoc(roomsDocRef,{
                 members: currentData.members,
                 gamemaster: currentData.gamemaster,
                 round: 1,
                 time: 60,
-                inprogress: true
+                inprogress: true,
+                points: starterPointsObject,
+                gameboard: gameBoard
             })
 
         }else{
@@ -68,6 +80,7 @@ function Lobby(props) {
                 //get index of user to be deleted
                 const currentData = roomSnapshot.data()
                 var index = currentData.members.indexOf(props.username);
+                delete currentData.points[props.username]
 
                 //the game ticks off of the gamemaster's clock, so we need to see if this person is the gamemaster. if so we need to pick a new one
                 let gamemaster = currentData.gamemaster
@@ -75,6 +88,7 @@ function Lobby(props) {
 
                 if (index !== -1) {
                     if(currentData.gamemaster == currentData.members[index]){
+                        
                         currentData.members.splice(index, 1);
                         if(currentData.members.length == 0){
                             //TODO: CLEAN UP THE LOBBY IS IT'S DEAD!
@@ -92,12 +106,15 @@ function Lobby(props) {
                 
                 
                 
+                
                 await setDoc(roomsDocRef,{
                     members: currentData.members,
                     gamemaster: gamemaster,
                     round: currentData.round,
                     time: currentData.time,
-                    inprogress: currentData.inprogress
+                    inprogress: currentData.inprogress,
+                    points: currentData.points,
+                    gameboard: currentData.gameboard
                 })
 
             }
@@ -153,11 +170,24 @@ function Lobby(props) {
         </>
 
         :
-
         <>
-            <PlayerList roomCode={props.roomCode} username={props.username} gameMaster={isGameMaster}/>
-            <DrawingBoard roomCode={props.roomCode} username={props.username} gameMaster={isGameMaster}/>
+            {(isGameMaster == true) ? 
+            
+            
+            
+            <>
+
+                <HostScreen roomCode={props.roomCode} username={props.username} isGameMaster={isGameMaster}/>
+            </>
+            :
+            <>
+                <PlayerList roomCode={props.roomCode} username={props.username} isGameMaster={isGameMaster}/>
+                <DrawingBoard roomCode={props.roomCode} username={props.username} isGameMaster={isGameMaster}/>
+            </>
+
+            }
         </>
+        
         
     )
 }

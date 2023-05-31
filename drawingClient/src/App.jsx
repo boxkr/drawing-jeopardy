@@ -50,12 +50,22 @@ function App() {
       }
 
       //set it to a copy of itself, just with the new member added
+      let starterPointsObject = {}
+      let newmembers = [...currentData.members, username]
+      for(let i = 0; i < newmembers.length; i++){
+        starterPointsObject[newmembers[i]] = 0;
+      }
       await setDoc(roomsDocRef,{
         members: [...currentData.members, username],
         gamemaster: currentData.gamemaster,
         round: currentData.round,
         time: currentData.time,
-        inprogress: currentData.inprogress
+        inprogress: currentData.inprogress,
+        points: starterPointsObject,
+        gameboard: {headers: ["Pokemon","Countries","Sports Logos", "Game Logos", "World Wonders"],
+        easy: ["Pikachu","United States","Steelers","Borderlands","Eiffel Tower"],
+        medium: ["Blaziken","Japan","Knicks","Overwatch","Colosseum"],
+        hard: ["Bastiodon","Afganistan","Falcons","Skyrim","Petra"]}
       })
 
 
@@ -68,7 +78,12 @@ function App() {
         gamemaster: username,
         round: 0,
         time: 60,
-        inprogress: false
+        inprogress: false,
+        points: {[username] : 0},
+        gameboard: {headers: ["Pokemon","Countries","Sports Logos", "Game Logos", "World Wonders"],
+        easy: ["Pikachu","United States","Steelers","Borderlands","Eiffel Tower"],
+        medium: ["Blaziken","Japan","Knicks","Overwatch","Colosseum"],
+        hard: ["Bastiodon","Afganistan","Falcons","Skyrim","Petra"]}
 
       })
 

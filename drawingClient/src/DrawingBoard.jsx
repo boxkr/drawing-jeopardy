@@ -21,6 +21,8 @@ function DrawingBoard(props) {
     const [currentDrawColor, setCurrentDrawColor] = useState("#000000");
     const [colorHistory, setColorHistory] = useState([]);
     const [currentStage, setCurrentStage] = useState(true)
+    const canvasRef = useRef(null);
+
 
     const average = (a,b)=>{return (a+b)/2}
     function getSvgPathFromStroke(points, closed = true) {
@@ -89,7 +91,7 @@ function DrawingBoard(props) {
     }
 
     function handleClear() {
-        const canvas = document.getElementById('canvas');
+        const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         ctx.fillStyle="rgb(231, 231, 231)"
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -111,7 +113,7 @@ function DrawingBoard(props) {
       //setPrevPoints(lastPoints);
       //setTotalPoints(newTotalPoints);
       
-      const canvas = document.getElementById('canvas');
+      const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       ctx.fillStyle="rgb(231, 231, 231)"
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -155,7 +157,7 @@ function DrawingBoard(props) {
     },[handleKeydown])
 
     useLayoutEffect(() => {
-      const canvas = document.getElementById('canvas');
+      const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       const options = { size: 8 }
       const outlinePoints = getStroke(points, options)
@@ -178,15 +180,14 @@ function DrawingBoard(props) {
 
             const currentData = roomSnapshot.data()
             var index = currentData.members.indexOf(props.username);
+            delete currentData.points[props.username]
             let gamemaster = currentData.gamemaster
                 
 
             if (index !== -1) {
                     
               if(currentData.gamemaster == currentData.members[index]){
-                        
                 currentData.members.splice(index, 1);
-                        
                 if(currentData.members.length == 0){
                   //TODO: CLEAN UP THE LOBBY IS IT'S DEAD!
                   console.log("No more members left... need to clean up")
@@ -207,7 +208,9 @@ function DrawingBoard(props) {
               gamemaster: gamemaster,
               round: currentData.round,
               time: currentData.time,
-              inprogress: currentData.inprogress
+              inprogress: currentData.inprogress,
+              points: currentData.points,
+              gameboard: currentData.gameboard
           })
 
         }else{
@@ -235,18 +238,26 @@ function DrawingBoard(props) {
           if(roomSnapshot.data().inprogress != "viewing"){
             return;
           }
+          if(props.isGameMaster == true){
+            await setTimeout(()=>{},1000);
+            setCurrentStage("viewing");
+            return
+          }
+          if(roomSnapshot.data().time == -100){
+            //only change stage when everybody is done sending, which will be when the host turns timer to -100
+            setCurrentStage(docu.data().inprogress);
+          }
           //first we do want to upload the players board to the database to save it for viewing
           const storageRef = ref(storage, `${props.roomCode}/${props.username}`);
-          const canvas = document.getElementById("canvas");
+          let canvas = document.getElementById("canvas");
           await canvas.toBlob( async (blob) => {
             let file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
-            await uploadBytes(storageRef, file).then((snapshot) => {
+            uploadBytes(storageRef, file).then((snapshot) => {
               console.log('Uploaded a blob or file!');
               //lastly we want to change the current stage state
-              setCurrentStage(docu.data().inprogress);
               console.log("HIT ZERO! changing current stage to viewing!")
-            });
-          }, 'image/jpeg');
+            })
+          }, 'image/jpeg')
           
 
 
@@ -259,16 +270,19 @@ function DrawingBoard(props) {
 
     useEffect(()=>{
         listenForRoundEnd();
+        console.log(props.isGameMaster)
     }, [])
+
 
     return (
 
       (currentStage == true) ? 
         <div className='container-board'>
-          {currentStage == true ? <p>t</p> : <p>{currentStage}</p>}
+          {currentStage == true ? <p>t</p> : <p>f</p>}
           <div className='boardContainer'>
               <canvas
                   id='canvas'
+                  ref={canvasRef}
                   className='canvas'
                   width={window.innerWidth / 1.75}
                   height={window.innerHeight / 1.5}
@@ -280,7 +294,6 @@ function DrawingBoard(props) {
           <div className='controls'>
               <button onClick={handleClear}>Clear Canvas</button>
               <button onClick={handleUndo}>Undo</button>
-              {/*Sliderpicker or CirclePicker are the best */}
               <CirclePicker 
                 color={currentDrawColor}
                 colors={["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5", "#2196f3", "#03a9f4", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#000000"]}
@@ -289,13 +302,15 @@ function DrawingBoard(props) {
               
           </div>
           <div>
-            {(props.gameMaster == true) ? <Timer isGameMaster={true} roomCode={props.roomCode} username={props.username}/> : <Timer isGameMaster={false} roomCode={props.roomCode} username={props.username}/>}
+            {(props.isGameMaster == true) ? <Timer isGameMaster={true} roomCode={props.roomCode} username={props.username}/> : <Timer isGameMaster={false} roomCode={props.roomCode} username={props.username}/>}
           </div>
         </div>
       :
       <>
-        <ViewingScreen roomCode={props.roomCode} username={props.username} isGameMaster={props.gameMaster}/>
+        {<ViewingScreen roomCode={props.roomCode} username={props.username} isGameMaster={props.isGameMaster}/>}
       </>
+
+
     )
 }
 
