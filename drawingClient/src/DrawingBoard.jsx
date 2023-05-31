@@ -249,7 +249,7 @@ function DrawingBoard(props) {
           }
           //first we do want to upload the players board to the database to save it for viewing
           const storageRef = ref(storage, `${props.roomCode}/${props.username}`);
-          let canvas = document.getElementById("canvas");
+          let canvas = canvasRef.current
           await canvas.toBlob( async (blob) => {
             let file = new File([blob], "fileName.jpg", { type: "image/jpeg" })
             uploadBytes(storageRef, file).then((snapshot) => {
